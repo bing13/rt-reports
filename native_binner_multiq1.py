@@ -56,7 +56,7 @@ QueueList = [ 'Authors','AUTHORS_claim_manual','AUTHORS_general',\
 QueueList = [ 'INST_add+cor' ]
 
 ## dirx is the root directory for input and output
-dirx = 'c:\\Users\\bhecker\\My Documents\\INSPIRE\\RT metrics\\2015-02-13 analyses\\'
+dirx = 'c:\\Users\\bhecker\\My Documents\\INSPIRE\\RT metrics\\2015-02-13_analyses\\'
 inx = dirx+'2015-02-18_vm2_dump.tsv'
 
 EntireSheet=pd.read_csv(inx, delimiter='\t', index_col=None, na_values=['NA'] )
