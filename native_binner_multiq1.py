@@ -22,6 +22,15 @@
         Should taken as command line argument. 
 
 '''
+################
+# TO-DO
+#
+# * output the date of the extract / date of last data point - 
+#     analysis won't always run in the same time frame as the extract
+#
+# 
+#
+
 
 def generate_index_page(starttime, queuelist):
     pageCode='<html><head><title>RT bin graphs, generated %s</title> </head>\n' % starttime
