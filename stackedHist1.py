@@ -1,9 +1,9 @@
 #!/usr/bin/python
 #########################################################
-# native_binner_multiq1.py
-# 2/13/2015 created
+# stackedHist1.py
+# 2/25/2015 created
 #
-######################################################
+########################################################
 
 '''
    read in an RT dump file, and generate "binner" plots
@@ -19,17 +19,19 @@
         index.html page in the same directory, for ease of browsing.
 
    TO RUN: currently, you need to edit the source dump file name.
-        Should taken as command line argument. 
+        Should taken as command line argument.
+
+   EXAMPLES OF OUTPUT: http://www.slac.stanford.edu/~bhecker/RT_metrics/2015-02-13_analyses/ 
 
 '''
-################
-# TO-DO
+################################################################
+# FIXME AND IMPROVEMENTS
 #
 # * output the date of the extract / date of last data point - 
 #     analysis won't always run in the same time frame as the extract
 # * would be better to do histos, especially stacked histos where the stack
 #     was "ticket status". 
-#
+################################################################
 
 
 def generate_index_page(starttime, queuelist):
@@ -50,6 +52,8 @@ import matplotlib as mpl;
 
 import matplotlib.pyplot as plt;
 import datetime, os; 
+
+STATUSES = ['new','open','stalled','resolved','rejected','deleted']
 
 STARTTIME = datetime.datetime.today().isoformat()[0:-7]
 print "Start time:", STARTTIME
@@ -97,7 +101,7 @@ for thisQueueName in QueueList:
     qFrame = ThisQueueFrame.reset_index()
     idKeys = qFrame['id']
     # set up fresh bin (Pandas dataframe)
-    tsbin = pd.Series(0, index=rng)
+    tsbin = pd.DataFrame(0, index=rng, columns=STATUSES)
     qFrame = qFrame.set_index('id')
 
     for k in idKeys:
@@ -117,25 +121,24 @@ for thisQueueName in QueueList:
             ## and ends on or after the beginBin date. 
 
             if c <= beginBin+datetime.timedelta(days=6) and r >= beginBin:
-                tsbin.loc[beginBin] += 1
-
-    ##print "tsbin tail/head", tsbin.head(), tsbin.tail()
+                tsbin.loc[beginBin][qFrame.loc[k]['Status']] += 1
 
     ## plot ##############
+    ## #get_ipython().magic(u'matplotlib inline')
+    print plt.matplotlib.rcParams['backend']
 
-    #get_ipython().magic(u'matplotlib inline')
-    #print plt.matplotlib.rcParams['backend']
-    plt.figure();
 
-    plt.ylabel("number of unresolved tickets"); 
-    plt.title(thisQueueName + " Queue Size")
-    tsbin.plot(kind='line')
+    # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.bar
     #next line forces the y axis to originate at zero
-    plt.ylim(0,)
+    #plt.ylim(0,)
+    plt.figure(figsize=[12,8]);
+    plt.ylabel("number of unresolved tickets"); 
+    plt.title(thisQueueName + " Queue Size, red=new, green=open, blue=stalled")
+    pNew = plt.bar(tsbin.index, tsbin['new'],  color='r', linewidth=0 )
+    pOpen = plt.bar(tsbin.index, tsbin['open'],  color='g', bottom=tsbin['new'], linewidth=0)
+    pStalled = plt.bar(tsbin.index, tsbin['stalled'], color='b', bottom=tsbin['new']+tsbin['open'], linewidth=0)  
 
-    # how to make the directory stick for saving the image??
-
-    plt.savefig(pathx+'\\'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
+    plt.savefig(pathx+'\\BAR-'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
     plt.close()
 
 OUTX = open(pathx+'\\index.html','w')
