@@ -46,12 +46,22 @@ def generate_index_page(starttime, queuelist):
 
 import pandas as pd;
 import numpy as np;
-import matplotlib as mpl;
+#import matplotlib as mpl;
 ## next line must occur before any mpl etc commands or imports
+## sometimes needed for hardcopy output
 #mpl.use("Qt4Agg")
+
+#TO RUN INTERACTIVE, THIS COMMAND MUST RUN perhaps in its own cell before this program
+# %matplotlib inline
+# symptom is kernel hang
 
 import matplotlib.pyplot as plt;
 import datetime, os; 
+
+print "Backend:", plt.matplotlib.rcParams['backend']
+print "Interactive:", plt.isinteractive()
+
+
 
 STATUSES = ['new','open','stalled','resolved','rejected','deleted']
 
@@ -127,22 +137,26 @@ for thisQueueName in QueueList:
     ## #get_ipython().magic(u'matplotlib inline')
     print plt.matplotlib.rcParams['backend']
 
-
     # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.bar
     #next line forces the y axis to originate at zero
     #plt.ylim(0,)
     plt.figure(figsize=[12,8]);
     plt.ylabel("number of unresolved tickets"); 
     plt.title(thisQueueName + " Queue Size, red=new, green=open, blue=stalled")
-    pNew = plt.bar(tsbin.index, tsbin['new'],  color='r', linewidth=0 )
-    pOpen = plt.bar(tsbin.index, tsbin['open'],  color='g', bottom=tsbin['new'], linewidth=0)
-    pStalled = plt.bar(tsbin.index, tsbin['stalled'], color='b', bottom=tsbin['new']+tsbin['open'], linewidth=0)  
+    wx = 5; # bar width
+    pNew = plt.bar(tsbin.index[-52:], tsbin['new'][-52:], width=wx, color='r', linewidth=0 )
+    pOpen = plt.bar(tsbin.index[-52:], tsbin['open'][-52:], width=wx, color='g', bottom=tsbin['new'][-52:], linewidth=0)
+    pStalled = plt.bar(tsbin.index[-52:], tsbin['stalled'][-52:], width=wx, color='b', bottom=tsbin['new'][-52:]+tsbin['open'][-52:], linewidth=0)  
 
-    plt.savefig(pathx+'\\BAR-'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
-    plt.close()
+    ## if interactive, uncomment
+    plt.show()
+    ## if hardcopy, uncomment following 5 lines
+    #plt.savefig(pathx+'\\BAR-'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
+    #plt.close()
 
-OUTX = open(pathx+'\\index.html','w')
-OUTX.write(generate_index_page(STARTTIME, QueueList ) )
-OUTX.close()
+#OUTX = open(pathx+'\\index.html','w')
+#OUTX.write(generate_index_page(STARTTIME, QueueList ) )
+#OUTX.close()
 
 print "End time:", datetime.datetime.today().isoformat()
+

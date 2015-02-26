@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #########################################################
-# native_binner_multiq1.py
-# 2/13/2015 created
+# createdResolved.py
+# 2/25/2015 created
 #
 ########################################################
 
@@ -15,7 +15,8 @@
         w/Org") downloaded by the RT Feed/Spreadsheet feature. Takes a
         long time to download.
 
-   OUTPUT: a binner plot of imputing queue size over time, plus a
+   OUTPUT: a binner plot of xxxxxx
+        plus a
         index.html page in the same directory, for ease of browsing.
 
    TO RUN: currently, you need to edit the source dump file name.
@@ -29,29 +30,37 @@
 #
 # * output the date of the extract / date of last data point - 
 #     analysis won't always run in the same time frame as the extract
-# * would be better to do histos, especially stacked histos where the stack
-#     was "ticket status". 
 ################################################################
 
 
 def generate_index_page(starttime, queuelist):
     pageCode='<html><head><title>RT bin graphs, generated %s</title> </head>\n' % starttime
-    pageCode += '<body><h1>RT bin graphs</h1>\n'
+    pageCode += '<body><h1>RT Created/Resolved graphs (weekly)</h1>\n'
     pageCode += '<body><h3>generated %s </h3>\n' % starttime
     pageCode += '<ol>'
     for q in queuelist:
-        pageCode += '<li><a href="'+q+'.png">'+q+'</a></li>\n'
+        pageCode += '<li><a href="cr_'+q+'.png">'+q+'</a></li>\n'
     pageCode += '</ol></body></html>'
     return(pageCode)
 
 import pandas as pd;
 import numpy as np;
-import matplotlib as mpl;
+#import matplotlib as mpl;
 ## next line must occur before any mpl etc commands or imports
+## sometimes needed for hardcopy output
 #mpl.use("Qt4Agg")
+
+#TO RUN INTERACTIVE, THIS COMMAND MUST RUN perhaps in its own cell before this program
+# %matplotlib inline
+# symptom is kernel hang
 
 import matplotlib.pyplot as plt;
 import datetime, os; 
+
+print "Backend:", plt.matplotlib.rcParams['backend']
+print "Interactive:", plt.isinteractive()
+
+STATUSES = ['new','open','stalled','resolved','rejected','deleted']
 
 STARTTIME = datetime.datetime.today().isoformat()[0:-7]
 print "Start time:", STARTTIME
@@ -64,7 +73,7 @@ QueueList = [ 'Authors','AUTHORS_claim_manual','AUTHORS_general',\
             'HEP_curation', 'Inspire-References', 'INST_add+cor', 'JOBS']
 
 ## for testing
-QueueList = [ 'INST_add+cor' ]
+#QueueList = [ 'INST_add+cor','HEP_add_user','HEP' ]
 
 ## dirx is the root directory for input and output
 dirx = 'c:\\Users\\bhecker\\My Documents\\INSPIRE\\RT metrics\\2015-02-13_analyses\\'
@@ -79,7 +88,7 @@ BIN_START_EPOCH = pd.datetime(2013, 5, 1)  ## modern epoch, i.e., point at which
 rng = pd.date_range(start=BIN_START_EPOCH, end=datetime.date.today(), freq='w')
 
 ### create output directory for graphs
-pathx = dirx + 'binner-'+STARTTIME.replace(':','')
+pathx = dirx + 'create_resolve-'+STARTTIME.replace(':','')
 
 ## odd structure, but avoids race condition and avoids file/dir confusion
 try: 
@@ -99,7 +108,7 @@ for thisQueueName in QueueList:
     qFrame = ThisQueueFrame.reset_index()
     idKeys = qFrame['id']
     # set up fresh bin (Pandas dataframe)
-    tsbin = pd.Series(0, index=rng)
+    tsbin = pd.DataFrame(0, index=rng, columns=['Created', 'Resolved'])
     qFrame = qFrame.set_index('id')
 
     for k in idKeys:
@@ -118,26 +127,29 @@ for thisQueueName in QueueList:
             ## ticket starts before or equal to "endBin" date, 
             ## and ends on or after the beginBin date. 
 
-            if c <= beginBin+datetime.timedelta(days=6) and r >= beginBin:
-                tsbin.loc[beginBin] += 1
-
-    ##print "tsbin tail/head", tsbin.head(), tsbin.tail()
+            if c >= beginBin and c <= beginBin+datetime.timedelta(days=6):
+                tsbin.loc[beginBin]['Created'] += 1
+            if r >= beginBin and r <= beginBin+datetime.timedelta(days=6):
+                tsbin.loc[beginBin]['Resolved'] += 1
 
     ## plot ##############
+    ## #get_ipython().magic(u'matplotlib inline')
+    print plt.matplotlib.rcParams['backend']
 
-    #get_ipython().magic(u'matplotlib inline')
-    #print plt.matplotlib.rcParams['backend']
-    plt.figure();
-
-    plt.ylabel("number of unresolved tickets"); 
-    plt.title(thisQueueName + " Queue Size")
-    tsbin.plot(kind='line')
+    # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.bar
     #next line forces the y axis to originate at zero
-    plt.ylim(0,)
+    #plt.ylim(0,)
+    plt.figure(figsize=[12,8]);
+    plt.ylabel("Created and Resolved tickets, per week"); 
+    plt.title(thisQueueName + " tickets created (black) and resolved (green)")
+    wx = 6; # bar width
+    pCreated = plt.bar(tsbin.index, tsbin['Created'], width=wx, color='k', linewidth=0 )
+    pOpen = plt.bar(tsbin.index, -tsbin['Resolved'], width=wx, color='g', bottom=0, linewidth=0)
 
-    # how to make the directory stick for saving the image??
-
-    plt.savefig(pathx+'\\'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
+    ## if interactive, uncomment
+    #plt.show()
+    ## if hardcopy, uncomment following 5 lines
+    plt.savefig(pathx+'\\cr_'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
     plt.close()
 
 OUTX = open(pathx+'\\index.html','w')
@@ -145,3 +157,4 @@ OUTX.write(generate_index_page(STARTTIME, QueueList ) )
 OUTX.close()
 
 print "End time:", datetime.datetime.today().isoformat()
+
