@@ -36,11 +36,11 @@
 
 def generate_index_page(starttime, queuelist):
     pageCode='<html><head><title>RT bin graphs, generated %s</title> </head>\n' % starttime
-    pageCode += '<body><h1>RT bin graphs</h1>\n'
+    pageCode += '<body><h1>RT stacked historgram graphs</h1>\n'
     pageCode += '<body><h3>generated %s </h3>\n' % starttime
     pageCode += '<ol>'
     for q in queuelist:
-        pageCode += '<li><a href="'+q+'.png">'+q+'</a></li>\n'
+        pageCode += '<li><a href="BAR-'+q+'.png">'+q+'</a></li>\n'
     pageCode += '</ol></body></html>'
     return(pageCode)
 
@@ -142,7 +142,7 @@ for thisQueueName in QueueList:
     #plt.ylim(0,)
     plt.figure(figsize=[12,8]);
     plt.ylabel("number of unresolved tickets"); 
-    plt.title(thisQueueName + " Queue Size, red=new, green=open, blue=stalled, black=resolved")
+    plt.title(thisQueueName + " Queue Size & CURRENT status: red=new, green=open, blue=stalled, black=resolved")
     wx = 5; # bar width
     pNew = plt.bar(tsbin.index[-52:], tsbin['new'][-52:], width=wx, color='r', linewidth=0 )
     pOpen = plt.bar(tsbin.index[-52:], tsbin['open'][-52:], width=wx, color='g', bottom=tsbin['new'][-52:], linewidth=0)
