@@ -34,8 +34,7 @@ def generate_index_page(starttime):
     pageCode += '<body><h1>RT current histogram</h1>\n' 
     pageCode += '<body><h3>generated %s </h3>\n' % starttime
     pageCode += '<ol>'
-    for q in queuelist:
-        pageCode += '<li><a href="'+'currentHistogram'+'.png">'+q+'</a></li>\n'
+    pageCode += '<li><a href="'+'currentHistogram'+'.png">Current stacked histogram</a></li>\n'
     pageCode += '</ol></body></html>'
     return(pageCode)
 
@@ -53,6 +52,10 @@ import numpy as np;
 import matplotlib.pyplot as plt;
 import datetime, os; 
 
+STATUSES = ['new','open','stalled','resolved','rejected','deleted']
+STARTTIME = datetime.datetime.today().isoformat()[0:-7]
+
+print "Started", STARTTIME
 print "Backend:", plt.matplotlib.rcParams['backend']
 print "Interactive:", plt.isinteractive()
 
@@ -109,7 +112,7 @@ indx = np.arange(len(qBin))
 print plt.matplotlib.rcParams['backend']
 
 # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.bar
-plt.figure(figsize=[12,7]);
+plt.figure(figsize=[14,7]);
 
 wx = .5; #5; # bar width
 #barh(bottom, width, height=0.8, left=None, hold=None, **kwargs)
