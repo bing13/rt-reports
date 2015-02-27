@@ -76,7 +76,7 @@ QueueList = [ 'Authors','AUTHORS_claim_manual','AUTHORS_general',\
             'HEP_curation', 'Inspire-References', 'INST_add+cor', 'JOBS']
 
 ## for testing
-QueueList = [ 'INST_add+cor' ]
+#QueueList = [ 'INST_add+cor' ]
 
 ## dirx is the root directory for input and output
 dirx = 'c:\\Users\\bhecker\\My Documents\\INSPIRE\\RT metrics\\2015-02-13_analyses\\'
@@ -91,7 +91,7 @@ BIN_START_EPOCH = pd.datetime(2013, 5, 1)  ## modern epoch, i.e., point at which
 rng = pd.date_range(start=BIN_START_EPOCH, end=datetime.date.today(), freq='w')
 
 ### create output directory for graphs
-pathx = dirx + 'graph-'+STARTTIME.replace(':','')
+pathx = dirx + 'stackedHist_12mon-'+STARTTIME.replace(':','')
 
 ## odd structure, but avoids race condition and avoids file/dir confusion
 try: 
@@ -142,21 +142,22 @@ for thisQueueName in QueueList:
     #plt.ylim(0,)
     plt.figure(figsize=[12,8]);
     plt.ylabel("number of unresolved tickets"); 
-    plt.title(thisQueueName + " Queue Size, red=new, green=open, blue=stalled")
+    plt.title(thisQueueName + " Queue Size, red=new, green=open, blue=stalled, black=resolved")
     wx = 5; # bar width
     pNew = plt.bar(tsbin.index[-52:], tsbin['new'][-52:], width=wx, color='r', linewidth=0 )
     pOpen = plt.bar(tsbin.index[-52:], tsbin['open'][-52:], width=wx, color='g', bottom=tsbin['new'][-52:], linewidth=0)
-    pStalled = plt.bar(tsbin.index[-52:], tsbin['stalled'][-52:], width=wx, color='b', bottom=tsbin['new'][-52:]+tsbin['open'][-52:], linewidth=0)  
+    pStalled = plt.bar(tsbin.index[-52:], tsbin['stalled'][-52:], width=wx, color='b', bottom=tsbin['new'][-52:]+tsbin['open'][-52:], linewidth=0)
+    pResolved = plt.bar(tsbin.index[-52:], tsbin['resolved'][-52:], width=wx, color='k', bottom=tsbin['new'][-52:]+tsbin['open'][-52:]+tsbin['stalled'][-52:], linewidth=0)  
 
     ## if interactive, uncomment
-    plt.show()
+    #plt.show()
     ## if hardcopy, uncomment following 5 lines
-    #plt.savefig(pathx+'\\BAR-'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
-    #plt.close()
+    plt.savefig(pathx+'\\BAR-'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
+    plt.close()
 
-#OUTX = open(pathx+'\\index.html','w')
-#OUTX.write(generate_index_page(STARTTIME, QueueList ) )
-#OUTX.close()
+OUTX = open(pathx+'\\index.html','w')
+OUTX.write(generate_index_page(STARTTIME, QueueList ) )
+OUTX.close()
 
 print "End time:", datetime.datetime.today().isoformat()
 
