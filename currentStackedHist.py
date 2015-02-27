@@ -56,13 +56,8 @@ import datetime, os;
 print "Backend:", plt.matplotlib.rcParams['backend']
 print "Interactive:", plt.isinteractive()
 
-
-
 STATUSES = ['new','open','stalled','resolved','rejected','deleted']
-
 STARTTIME = datetime.datetime.today().isoformat()[0:-7]
-print "Start time:", STARTTIME
-print "Display mode:", plt.matplotlib.rcParams['backend']
 
 ##queues of interest
 AllQueue = [ 'Authors','AUTHORS_claim_manual','AUTHORS_general',\
@@ -70,15 +65,12 @@ AllQueue = [ 'Authors','AUTHORS_claim_manual','AUTHORS_general',\
             'HEP', 'HEP_add_user', 'HEP_cor_user','HEP_ref', 'HEP_ref_user', \
             'HEP_curation','HEPNAMES', 'Inspire-References', 'INST_add+cor', 'JOBS']
 
-## for testing
-QueueList = [ 'INST_add+cor' ]
-
 ## dirx is the root directory for input and output
 dirx = 'c:\\Users\\bhecker\\My Documents\\INSPIRE\\RT metrics\\2015-02-13_analyses\\'
 inx = dirx+'2015-02-18_vm2_dump.tsv'
 
 EntireSheet=pd.read_csv(inx, delimiter='\t', index_col=None, na_values=['NA'] )
-entireSheetQI = EntireSheet.set_index('Status')
+#entireSheetQI = EntireSheet.set_index('Status')
 
 ### create output directory for graphs
 pathx = dirx + 'currentHisto-'+STARTTIME.replace(':','')
@@ -117,25 +109,32 @@ indx = np.arange(len(qBin))
 print plt.matplotlib.rcParams['backend']
 
 # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.bar
-plt.figure(figsize=[12,8]);
-plt.ylabel("number of tickets"); 
-plt.title("Current Queue Status")
-plt.xticks(indx+wx/2., AllQueue )
-plt.legend( "legend here" )
+plt.figure(figsize=[12,7]);
+
 wx = .5; #5; # bar width
-pNew = plt.bar(indx, qf['new'], width=wx, color='r', linewidth=0 )
-pOpen = plt.bar(indx, qf['open'], width=wx, color='g', bottom=qf['new'], linewidth=0)
-pStalled = plt.bar(indx, qf['stalled'], width=wx, color='b', bottom=qf['new']+qf['open'], linewidth=0)  
+#barh(bottom, width, height=0.8, left=None, hold=None, **kwargs)
+pNew = plt.barh(indx, qf['new'], height=wx, color='r', linewidth=0 )
+pOpen = plt.barh(indx, qf['open'], height=wx, color='g', left=qf['new'], linewidth=0)
+pStalled = plt.barh(indx, qf['stalled'], height=wx, color='b', left=qf['new']+qf['open'], linewidth=0)  
 
+
+
+plt.ylabel("number of tickets"); 
+ti = "Current Queue Status, last entry: %s" % EntireSheet.at[len(EntireSheet)-1,'Created']
+plt.title(ti)
+plt.yticks(indx+wx/2., qf.index)
+plt.legend((pNew, pOpen, pStalled), ('new', 'open', 'stalled') )
 ## if interactive, uncomment
-plt.show()
-## if hardcopy, uncomment following 5 lines
-#plt.savefig(pathx+'\\BAR-'+thisQueueName+'.png', dpi=140, facecolor='w', format='png')
-    #plt.close()
+#plt.show()
 
-#OUTX = open(pathx+'\\index.html','w')
-#OUTX.write(generate_index_page(STARTTIME, QueueList ) )
-#OUTX.close()
+## if hardcopy, uncomment following 5 lines
+plt.savefig(pathx+'\\currentHistogram.png', dpi=140, facecolor='w', format='png')
+plt.close()
+
+OUTX = open(pathx+'\\index.html','w')
+OUTX.write(generate_index_page(STARTTIME ) )
+OUTX.close()
 
 print "End time:", datetime.datetime.today().isoformat()
+
 
